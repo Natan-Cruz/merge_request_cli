@@ -4,7 +4,7 @@ use inquire::{
     list_option::ListOption, InquireError, Confirm
 };
 
-use super::{GitFunctions, BranchCompleter, Config::Config};
+use super::{GitFunctions, BranchCompleter};
 
 #[derive(Debug)]
 pub struct Question {

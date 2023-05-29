@@ -1,0 +1,20 @@
+[package]
+name="CLI"
+version="0.1.0"
+authors=["Natã Alves"]
+description="Poder criar via Cli um Merge Request no Space? Sim agora tu podes"
+edition = "2021"
+
+[dependencies]
+inquire = "0.6.2"
+regex = "1.8.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.96"
+toml = "0.7.4"
+reqwest = { version = "*", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
+json = "0.12.4"
+
+[[bin]]
+name="main"
+path="src/main.rs"

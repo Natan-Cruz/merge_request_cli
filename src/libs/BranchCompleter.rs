@@ -5,7 +5,7 @@ use inquire::{
     autocompletion::Replacement
 };
 
-use crate::{GitFunctions, Utils};
+use super::{GitFunctions, Utils};
 
 #[derive(Clone, Default)]
 pub struct BranchCompleter {
