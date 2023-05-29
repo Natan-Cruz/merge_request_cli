@@ -1,0 +1,15 @@
+/home/nata/rust/cli/target/release/deps/toml-05262a03fc594daf.rmeta: /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/lib.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/map.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/value.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/de.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/ser.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/macros.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/edit.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/fmt.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/table.rs
+
+/home/nata/rust/cli/target/release/deps/libtoml-05262a03fc594daf.rlib: /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/lib.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/map.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/value.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/de.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/ser.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/macros.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/edit.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/fmt.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/table.rs
+
+/home/nata/rust/cli/target/release/deps/toml-05262a03fc594daf.d: /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/lib.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/map.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/value.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/de.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/ser.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/macros.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/edit.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/fmt.rs /home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/table.rs
+
+/home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/lib.rs:
+/home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/map.rs:
+/home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/value.rs:
+/home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/de.rs:
+/home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/ser.rs:
+/home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/macros.rs:
+/home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/edit.rs:
+/home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/fmt.rs:
+/home/nata/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.7.4/src/table.rs:
