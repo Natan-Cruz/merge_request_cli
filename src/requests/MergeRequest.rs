@@ -23,18 +23,18 @@ pub async fn create_merge_request(api_token: String, params: JsonValue) {
          .unwrap();
 
      match response.status() {
-         reqwest::StatusCode::OK => {
-             // on success, parse our JSON to an APIResponse
-             match response.json::<Response>().await {
-                 Ok(parsed) => println!("Link para MR: https://multiplier.jetbrains.space/p/srp/reviews/{}/timeline", parsed.number),
-                 Err(_) => println!("Erro ao tentar criar MR"),
-             };
-         }
-         reqwest::StatusCode::UNAUTHORIZED => {
-             println!("Token expirado");
-         }
-         other => {
-             panic!("Algo de errado aconteceu: {:?}", other);
-         }
+        reqwest::StatusCode::OK => {
+            // on success, parse our JSON to an APIResponse
+            match response.json::<Response>().await {
+                Ok(parsed) => println!("Link para MR: https://multiplier.jetbrains.space/p/srp/reviews/{}/timeline", parsed.number),
+                Err(_) => println!("Erro ao tentar criar MR"),
+            };
+        }
+        reqwest::StatusCode::UNAUTHORIZED => {
+            println!("Token expirado");
+        }
+        other => {
+            panic!("Algo de errado aconteceu: {:?}", other);
+        }
      };
 }

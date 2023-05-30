@@ -1,7 +1,9 @@
-use std::{fs, io::Error as IoError};
+use std::{fs, io::Error as IoError, path::{Path}};
 use serde::{Serialize, Deserialize};
 use toml;
 
+use std::env::current_dir;
+use relative_path::RelativePath;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigToml {
@@ -17,13 +19,22 @@ pub struct Config {
 
 impl Config {
     pub fn new() -> Self {
-        let config_path: String = "./Config.toml".to_owned();
+        let root = current_dir();
 
-        let result: Result<String, IoError> = fs::read_to_string(config_path);
+        let root = match root {
+            Ok(root) => root,
+            Err(_) => panic!("Erro ao obter caminho do arquivo de Configuração")
+        };
+
+        // to_path unconditionally concatenates a relative path with its base:
+        let relative_path = RelativePath::new("Config.toml");
+        let full_path = relative_path.to_path(&root);
+
+        let result: Result<String, IoError> = fs::read_to_string(full_path);
 
         let content: String = match result {
-            Ok(fileConfig) => fileConfig,
-            Err(error) => "".to_owned()
+            Ok(file_config) => file_config,
+            Err(_) => "".to_owned()
         };
 
 
@@ -38,16 +49,15 @@ impl Config {
         let profile_id: String = match config_toml.profile_id {
             Some(profile_id) => profile_id,
             None => {
-                println!("Error: profile_id não encontrado no Config.toml");
-                "unknown".to_owned()
+                panic!("Error: profile_id não encontrado no Config.toml");
+                
             }
         };
 
         let api_token: String = match config_toml.api_token {
             Some(api_token) => api_token,
             None => {
-                println!("Error: api_token não encontrado no Config.toml");
-                "unknown".to_owned()
+                panic!("Error: api_token não encontrado no Config.toml");
             }
         };
 

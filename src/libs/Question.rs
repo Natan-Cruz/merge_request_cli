@@ -1,10 +1,14 @@
+use std::fmt::format;
+
 use inquire::{
     Text, 
     Select,
     list_option::ListOption, InquireError, Confirm
 };
 
-use super::{GitFunctions, BranchCompleter};
+use crate::requests::Issues::{self, IssuesResponseData};
+
+use super::{GitFunctions, BranchCompleter, Config, Utils};
 
 #[derive(Debug)]
 pub struct Question {
@@ -21,13 +25,13 @@ pub struct Question {
 
 impl Question {
 
-    pub fn start_questionnaire() -> Self {
+    pub async fn start_questionnaire() -> Self {
         let type_commit: String = show_type_commit();
         let scope_commit: String = show_scope_commit();
         
         let name: String = show_name();
         let description: String = show_description();
-        let issues: String = show_issues();
+        let issues = show_issues().await;
 
         let is_draft: bool = show_is_draft();
 
@@ -146,13 +150,42 @@ fn show_description() -> String {
     };
 }
 
-fn show_issues() -> String {
+// fn show_issues() -> String {
+//     let message: &str = "Qual(is) issues para esta MR?";
+//     let result:Result<String, inquire::InquireError> = Text::new(&message)
+//         .prompt();
+
+//     match result {
+//         Ok(res) => return res,
+//         Err(_) => panic!("Algo deu errado!")
+//     };
+//  }
+
+async fn show_issues() -> String {
+    let config = Config::Config::new();
+
+    let issues: Issues::IssuesResponse = Issues::get_in_progress_issues(config.api_token).await;
+    
+    let options: Vec<String> = issues.data.iter().map( | s | {
+        format!("{}-T-{}: {}", s.projectRef.key.key, s.number, s.title)
+    }).collect();
+
     let message: &str = "Qual(is) issues para esta MR?";
-    let result:Result<String, inquire::InquireError> = Text::new(&message)
+
+    let result = inquire::MultiSelect::new(&message, options)
+        .with_formatter(&|issues: &[ListOption<&String>]| Utils::formatter_issues(issues))
         .prompt();
 
     match result {
-        Ok(res) => return res,
+        Ok(res) => {
+            let issues_numer: String = res.iter().map( | s | {
+                return s.split(":").map(|s: &str| s.to_owned())
+                    .collect::<Vec<String>>()
+                    .swap_remove(0);
+            }).collect::<Vec<String>>().join("; ");
+        
+            return issues_numer;
+        },
         Err(_) => panic!("Algo deu errado!")
     };
 }

@@ -1,37 +1,38 @@
+use std::fmt;
+
 use reqwest::header::{CONTENT_TYPE, ACCEPT};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-struct IssuesResponse {
-    data: Vec<IssuesResponseData>
+pub struct IssuesResponse {
+    pub data: Vec<IssuesResponseData>
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct IssuesResponseData {
-    projectRef: ProjectRef,
-    number: i32,
-    title: String
+pub struct IssuesResponseData {
+    pub projectRef: ProjectRef,
+    pub number: i32,
+    pub title: String
+}
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ProjectRef {
+    pub key: ProjectRefKey 
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct ProjectRef {
-    key: ProjectRefKey 
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct ProjectRefKey {
-    key: String
+pub struct ProjectRefKey {
+    pub key: String
 }
 
 pub async fn get_in_progress_issues(api_token: String) -> IssuesResponse {
     let client: reqwest::Client = reqwest::Client::new();
 
-    let url = "https://multiplier.jetbrains.space/api/http/projects/id:2ZsKnR42KI6t/planning/issues?assigneeId=username:nata.cruz&sorting=UPDATED&descending=true&$fields=data(number,projectRef(key),title)";
+    let url = "https://multiplier.jetbrains.space/api/http/projects/id:2ZsKnR42KI6t/planning/issues?assigneeId=me&statuses=43Wrzo4NkB7E&sorting=UPDATED&descending=true&$fields=data(number,projectRef(key),title)";
 
     let response: reqwest::Response = client.get(url)
         .header(CONTENT_TYPE, "application/json")
         .header(ACCEPT, "application/json")
-        .header("Authorization", api_token)
+        .header("Authorization", "Bearer ".to_owned() + &api_token)
         .send()
         .await
         .unwrap();
