@@ -22,6 +22,6 @@ async fn main() {
 
     let merge_request_body:JsonValue = Utils::build_merge_request_body(answers, config.profile_id);
 
-    MergeRequest::create_merge_request(config.api_token, merge_request_body).await;
+    let response = MergeRequest::create_merge_request(config.api_token, merge_request_body).await;
 }
 

@@ -7,10 +7,19 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.post("/", (req, res) => {
+    console.log(req.headers);
     console.log(req.body)
 
     res.send({ number: 5588})
 })
+
+// {
+//     "id": "fNG0L1lSYbc",
+//     "archived": false,
+//     "name": "Em revisão de código",
+//     "resolved": false,
+//     "color": "f7f056"
+//   },
 
 //  axios({
 //     method: "POST",
