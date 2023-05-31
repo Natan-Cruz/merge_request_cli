@@ -14,7 +14,7 @@ pub fn transform_string_to_vec(s: String) -> Vec<String> {
         .collect();
 }
 
-pub fn build_merge_request_body(answers: Question, profile_id: String) -> JsonValue {
+pub fn build_merge_request_body(answers: &Question, profile_id: String) -> JsonValue {
 
     let mut title: String = String::new();
 
@@ -66,10 +66,10 @@ pub fn build_merge_request_body(answers: Question, profile_id: String) -> JsonVa
 
    return object!{
         "repository": "front",
-        "sourceBranch": answers.current_branch,
-        "targetBranch": answers.target_branch,
+        "sourceBranch": answers.current_branch.to_owned(),
+        "targetBranch": answers.target_branch.to_owned(),
         "title": title,
-        "description": answers.description,
+        "description": answers.description.to_owned(),
         "reviewers": reviewers
     };
 }

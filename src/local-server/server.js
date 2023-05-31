@@ -12,6 +12,13 @@ app.post("/", (req, res) => {
     res.send({ number: 5588})
 })
 
+
+app.patch("/", (req, res) => {
+    console.log(req.body)
+
+    res.send({ number: 5588})
+})
+
 //  axios({
 //     method: "POST",
 // url: 'https://multiplier.jetbrains.space/api/http/projects/id:2ZsKnR42KI6t/code-reviews/merge-requests?$fields=number',

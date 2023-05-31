@@ -1,6 +1,5 @@
-use std::fmt;
-
-use reqwest::header::{CONTENT_TYPE, ACCEPT};
+use json::object;
+use reqwest::{header::{CONTENT_TYPE, ACCEPT}, Client};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -48,6 +47,34 @@ pub async fn get_in_progress_issues(api_token: String) -> IssuesResponse {
         reqwest::StatusCode::UNAUTHORIZED => {
             panic!("Token expirado");
         }
+        other => {
+            panic!("Algo de errado aconteceu: {:?}", other);
+        }
+    }
+}
+
+pub async fn update_status(api_token: &str, issues: &str) {
+    let url = "https://multiplier.jetbrains.space/api/http/projects/id:2ZsKnR42KI6t/planning/issues/key:".to_owned() + issues;
+
+    let client: Client = Client::new();
+
+    let body = object!{
+        "status": "fNG0L1lSYbc"
+    };
+
+    let response = client.patch(url)
+        .header(CONTENT_TYPE, "application/json")
+        .header(ACCEPT, "application/json")
+        .header("Authorization", "Bearer ".to_owned() +  api_token)
+        .body(json::stringify(body))
+        .send()
+        .await
+        .unwrap();
+
+    match response.status() {
+        reqwest::StatusCode::OK =>  { 
+            println!("Status da issue {issues} alterado")
+        },
         other => {
             panic!("Algo de errado aconteceu: {:?}", other);
         }

@@ -7,12 +7,11 @@ use crate::libs::{
 
 mod requests;
 use crate::requests::{
-    MergeRequest
+    MergeRequest,
+    Issues
 };
 
 use json::JsonValue;
-use requests::Issues;
-
 
 #[tokio::main]
 async fn main() {
@@ -20,8 +19,15 @@ async fn main() {
 
     let answers: Question = Question::start_questionnaire().await;
 
-    let merge_request_body:JsonValue = Utils::build_merge_request_body(answers, config.profile_id);
+    let merge_request_body:JsonValue = Utils::build_merge_request_body(&answers, config.profile_id);
 
-    MergeRequest::create_merge_request(config.api_token, merge_request_body).await;
+    MergeRequest::create_merge_request(&config.api_token, merge_request_body).await;
+
+    let issues_close = answers.issues.clone();
+    let issues = issues_close.split("; ").collect::<Vec<&str>>();
+
+    for f in issues {
+        Issues::update_status(&config.api_token, f).await;
+    }
 }
 

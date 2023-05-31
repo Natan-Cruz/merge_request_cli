@@ -8,19 +8,19 @@ struct Response {
     number: i32
 }
 
-pub async fn create_merge_request(api_token: String, params: JsonValue) {
+pub async fn create_merge_request(api_token: &str, params: JsonValue) {
     let url: &str = "https://multiplier.jetbrains.space/api/http/projects/id:2ZsKnR42KI6t/code-reviews/merge-requests?$fields=number";
 
     let client: reqwest::Client = reqwest::Client::new();
 
     let response: reqwest::Response = client.post(url)
-         .header(CONTENT_TYPE, "application/json")
-         .header(ACCEPT, "application/json")
-         .header("Authorization", "Bearer ".to_owned() +  &api_token)
-         .body(json::stringify(params))
-         .send()
-         .await
-         .unwrap();
+        .header(CONTENT_TYPE, "application/json")
+        .header(ACCEPT, "application/json")
+        .header("Authorization", "Bearer ".to_owned() +  api_token)
+        .body(json::stringify(params))
+        .send()
+        .await
+        .unwrap();
 
      match response.status() {
         reqwest::StatusCode::OK => {

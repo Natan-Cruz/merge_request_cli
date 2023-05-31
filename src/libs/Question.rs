@@ -26,11 +26,11 @@ pub struct Question {
 impl Question {
 
     pub async fn start_questionnaire() -> Self {
-        let type_commit: String = show_type_commit();
-        let scope_commit: String = show_scope_commit();
+        // let type_commit: String = show_type_commit();
+        // let scope_commit: String = show_scope_commit();
         
-        let name: String = show_name();
-        let description: String = show_description();
+        // let name: String = show_name();
+        // let description: String = show_description();
         let issues = show_issues().await;
 
         let is_draft: bool = show_is_draft();
@@ -47,10 +47,10 @@ impl Question {
         show_confirm();
 
         Question { 
-            type_commit,
-            scope_commit,
-            name,
-            description,
+            type_commit: "".to_string(),
+            scope_commit: "".to_string(),
+            name: "".to_string(),
+            description: "".to_string(),
             issues,
             is_draft,
             priority,
