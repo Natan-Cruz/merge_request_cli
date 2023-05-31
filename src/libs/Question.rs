@@ -3,7 +3,8 @@ use std::fmt::format;
 use inquire::{
     Text, 
     Select,
-    list_option::ListOption, InquireError, Confirm
+    list_option::ListOption, InquireError, Confirm,
+    Editor
 };
 
 use crate::requests::Issues::{self, IssuesResponseData};
@@ -26,20 +27,23 @@ pub struct Question {
 impl Question {
 
     pub async fn start_questionnaire() -> Self {
-        let type_commit: String = show_type_commit();
-        let scope_commit: String = show_scope_commit();
+        // let type_commit: String = show_type_commit();
+        // let scope_commit: String = show_scope_commit();
         
-        let name: String = show_name();
-        let description: String = show_description();
-        let issues = show_issues().await;
+        // let name: String = show_name();
+        // let description: String = show_description();
+        // let issues = show_issues().await;
 
-        let is_draft: bool = show_is_draft();
+        // let is_draft: bool = show_is_draft();
 
-        let mut priority: String = String::new();
+        // let mut priority: String = String::new();
 
-        if is_draft == false {
-            priority = show_priority();
-        }
+        // if is_draft == false {
+        //     priority = show_priority();
+        // }
+
+        let comments = show_comments();
+
 
         let current_branch: String = show_current_branch();
         let target_branch: String = show_target_branch();
@@ -47,13 +51,13 @@ impl Question {
         show_confirm();
 
         Question { 
-            type_commit,
-            scope_commit,
-            name,
-            description,
-            issues,
-            is_draft,
-            priority,
+            type_commit: "".to_owned(),
+            scope_commit: "".to_owned(),
+            name: "".to_owned(),
+            description: "".to_owned(),
+            issues: "".to_owned(),
+            is_draft: true,
+            priority: "".to_owned(),
             current_branch,
             target_branch,
         }
@@ -150,16 +154,6 @@ fn show_description() -> String {
     };
 }
 
-// fn show_issues() -> String {
-//     let message: &str = "Qual(is) issues para esta MR?";
-//     let result:Result<String, inquire::InquireError> = Text::new(&message)
-//         .prompt();
-
-//     match result {
-//         Ok(res) => return res,
-//         Err(_) => panic!("Algo deu errado!")
-//     };
-//  }
 
 async fn show_issues() -> String {
     let config = Config::Config::new();
@@ -218,6 +212,12 @@ fn show_priority() -> String {
         Ok(priority) => priority.to_owned(),
         Err(_) => panic!("Algo deu errado!")
     }
+}
+
+fn show_comments(){
+    let comments = Editor::new("Descrever comentários para MR?").prompt();
+
+    println!("{comments:?}")
 }
 
 fn show_current_branch() -> String {
