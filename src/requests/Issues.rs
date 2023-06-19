@@ -1,5 +1,11 @@
 use json::object;
-use reqwest::{header::{CONTENT_TYPE, ACCEPT}, Client};
+use reqwest::{
+    header::{
+        CONTENT_TYPE, 
+        ACCEPT
+    }, 
+    Client
+};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]

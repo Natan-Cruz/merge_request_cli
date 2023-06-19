@@ -11,13 +11,9 @@ struct Response {
 pub async fn create_merge_request(api_token: &str, params: JsonValue, project_id: &String) -> () {
     let mut url = String::new();
 
-    // url.push_str("https://multiplier.jetbrains.space/api/http/projects/id:");
-    // url.push_str(&project_id); 
-    // url.push_str("/code-reviews/merge-requests?$fields=number"); 
-
-
-    url.push_str("http://localhost:3000/?a=");
+    url.push_str("https://multiplier.jetbrains.space/api/http/projects/id:");
     url.push_str(&project_id); 
+    url.push_str("/code-reviews/merge-requests?$fields=number"); 
 
     let client: reqwest::Client = reqwest::Client::new();
 
