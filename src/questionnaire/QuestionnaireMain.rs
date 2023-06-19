@@ -7,15 +7,20 @@ use inquire::{
     Confirm
 };
 
-use crate::requests::Issues::{
-    self, 
-    IssuesResponseData
+use crate::{
+    requests::Issues::{
+        self,
+        IssuesResponseData
+    }, 
+    libs::{
+        GitFunctions,
+        BranchCompleter,
+        Utils
+    }
 };
 
-use super::{GitFunctions, BranchCompleter, Config, Utils};
-
 #[derive(Debug)]
-pub struct Question {
+pub struct Questionnaire {
     pub type_commit: String,
     pub scope_commit: String,
     pub name: String,
@@ -26,8 +31,7 @@ pub struct Question {
     pub target_branch: String,
 }
 
-
-impl Question {
+impl Questionnaire {
 
     pub async fn start_questionnaire(api_token: &String, scopes: Vec<String>, prefix: Vec<String>, default_target_branch: String) -> Self {
 
@@ -37,18 +41,19 @@ impl Question {
         let name: String = show_name();
         let description: String = show_description();
 
-
         // issues
         let issues_in_progress: Issues::IssuesResponse = Issues::get_in_progress_issues(api_token).await;
 
-        let issues: String = String::new();
+
+        let mut issues: String = String::new();
 
         if issues_in_progress.data.is_empty() {
-            println!("Não há issues em progressos atrelados à você")
+            println!("ISSUES: Não há issues em progressos atrelados à você");
         } else{
-            let issues = show_issues(issues_in_progress.data);
+            let issues_selected = show_issues(issues_in_progress.data).await;
+            issues.push_str(&issues_selected)
         }
-        
+
         let prefix = show_prefix(prefix);
 
         let current_branch: String = show_current_branch();
@@ -56,7 +61,7 @@ impl Question {
 
         show_confirm();
 
-        Question { 
+        Questionnaire { 
             type_commit,
             scope_commit,
             name,
@@ -66,17 +71,6 @@ impl Question {
             current_branch,
             target_branch,
         }
-    }
-}
-
-fn show_api_token() -> String {
-    let message: &str = "Qual o seu api Token?";
-
-    let api_token: Result<String, InquireError> = Text::new(message).prompt();
-
-    match api_token {
-        Ok(result) => return result,
-        Err(err) => panic!("Algo deu errado, {err:?}")
     }
 }
 
@@ -157,8 +151,7 @@ fn show_description() -> String {
     };
 }
 
-async fn show_issues(issues_in_progress:  Vec<IssuesResponseData>) -> String {
-    let config = Config::Authorization::new();
+async fn show_issues(issues_in_progress: Vec<IssuesResponseData>) -> String {
     
     let options: Vec<String> = issues_in_progress.iter().map( | s | {
         format!("{}-T-{}: {}", s.projectRef.key.key, s.number, s.title)
@@ -184,9 +177,12 @@ async fn show_issues(issues_in_progress:  Vec<IssuesResponseData>) -> String {
     };
 }
 
-fn show_prefix(prefix: Vec<String>) -> String {
+fn show_prefix(mut prefix: Vec<String>) -> String {
 
-    let prefix: Result<String, InquireError> = Select::new("Qual a prioridade?", prefix)
+    prefix.push("".to_string());
+    prefix.rotate_right(1);
+
+    let prefix: Result<String, InquireError> = Select::new("Qual é o prefixo?", prefix)
         .prompt();
 
     match prefix {

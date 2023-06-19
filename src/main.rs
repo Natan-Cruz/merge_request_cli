@@ -1,33 +1,61 @@
 mod libs;
 use crate::libs::{
-    Config::Config,
-    Question::Question,
+    Config::{
+        Authorization,
+        Configurations
+    },
     Utils
 };
 
 mod requests;
 use crate::requests::{
     MergeRequest,
-    Issues
+    Issues,
 };
 
 use json::JsonValue;
 
+mod questionnaire;
+use crate::questionnaire::{
+    QuestionnaireInitial, 
+    QuestionnaireMain
+};
+
 #[tokio::main]
 async fn main() {
-    let config: Config = Config::new();
+    let mut authorization: Authorization = Authorization::new();
+    let configurations: Configurations = Configurations::new();
 
-    let answers: Question = Question::start_questionnaire().await;
+    if authorization.api_token.is_empty() {
+        let initial_config = QuestionnaireInitial::Questionnaire::start_questionnaire().await;
+        authorization = Authorization::save_values(&initial_config.api_token, &initial_config.profile_id)
+    }
 
-    let merge_request_body:JsonValue = Utils::build_merge_request_body(&answers, config.profile_id);
+    if configurations.scopes.is_empty() {
+        panic!("Escopo do projeto não estar vazio, vá até o Config.toml e preecha o campo scopes")
+    }
 
-    MergeRequest::create_merge_request(&config.api_token, merge_request_body).await;
+    let answers = QuestionnaireMain::Questionnaire::start_questionnaire(&authorization.api_token, configurations.scopes, configurations.prefix, configurations.default_target_branch).await;
 
-    let issues_close = answers.issues.clone();
-    let issues = issues_close.split("; ").collect::<Vec<&str>>();
+    let merge_request_body:JsonValue = Utils::build_merge_request_body(
+        &answers, 
+        authorization.profile_id, 
+        configurations.reviewers,
+        configurations.repository
+    );
 
-    for f in issues {
-        Issues::update_status(&config.api_token, f).await;
+    MergeRequest::create_merge_request(&authorization.api_token, merge_request_body, &configurations.project_id).await;
+
+    let issues_cloned = answers.issues.clone();
+    let issues_cloned = issues_cloned
+        .split(" ")
+        .filter(| issue | !issue.is_empty())
+        .collect::<Vec<&str>>();
+
+    if !issues_cloned.is_empty(){
+        for f in issues_cloned {
+            Issues::update_status(&authorization.api_token, f).await;
+        }
     }
 }
 

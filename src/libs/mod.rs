@@ -1,4 +1,3 @@
-
 pub mod BranchCompleter;
 pub mod GitFunctions;
 pub mod Utils;

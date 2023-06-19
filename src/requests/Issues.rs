@@ -23,7 +23,7 @@ pub struct ProjectRefKey {
     pub key: String
 }
 
-pub async fn get_in_progress_issues(api_token: String) -> IssuesResponse {
+pub async fn get_in_progress_issues(api_token: &String) -> IssuesResponse {
     let client: reqwest::Client = reqwest::Client::new();
 
     let url = "https://multiplier.jetbrains.space/api/http/projects/id:2ZsKnR42KI6t/planning/issues?assigneeId=me&statuses=43Wrzo4NkB7E&sorting=UPDATED&descending=true&$fields=data(number,projectRef(key),title)";
@@ -31,7 +31,7 @@ pub async fn get_in_progress_issues(api_token: String) -> IssuesResponse {
     let response: reqwest::Response = client.get(url)
         .header(CONTENT_TYPE, "application/json")
         .header(ACCEPT, "application/json")
-        .header("Authorization", "Bearer ".to_owned() + &api_token)
+        .header("Authorization", "Bearer ".to_owned() + api_token)
         .send()
         .await
         .unwrap();

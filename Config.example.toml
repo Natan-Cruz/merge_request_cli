@@ -1,0 +1,11 @@
+[authorization]
+profile_id = ""
+api_token = ""
+
+[project_config]
+project_id = ""
+repository = ""
+reviewers = []
+scopes = []
+prefix = []
+default_target_branch = ""

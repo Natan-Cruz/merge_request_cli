@@ -5,11 +5,19 @@ use json::{JsonValue};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Response {
-    number: i32
+    number: u16
 }
 
-pub async fn create_merge_request(api_token: &str, params: JsonValue) {
-    let url: &str = "https://multiplier.jetbrains.space/api/http/projects/id:2ZsKnR42KI6t/code-reviews/merge-requests?$fields=number";
+pub async fn create_merge_request(api_token: &str, params: JsonValue, project_id: &String) -> () {
+    let mut url = String::new();
+
+    // url.push_str("https://multiplier.jetbrains.space/api/http/projects/id:");
+    // url.push_str(&project_id); 
+    // url.push_str("/code-reviews/merge-requests?$fields=number"); 
+
+
+    url.push_str("http://localhost:3000/?a=");
+    url.push_str(&project_id); 
 
     let client: reqwest::Client = reqwest::Client::new();
 
@@ -31,7 +39,7 @@ pub async fn create_merge_request(api_token: &str, params: JsonValue) {
             };
         }
         reqwest::StatusCode::UNAUTHORIZED => {
-            println!("Token expirado");
+            panic!("Token expirado");
         }
         other => {
             panic!("Algo de errado aconteceu: {:?}", other);
