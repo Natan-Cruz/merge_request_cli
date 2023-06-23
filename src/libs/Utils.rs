@@ -1,4 +1,3 @@
-use inquire::list_option::ListOption;
 use json::{JsonValue, object};
 use regex::Regex;
 
@@ -50,14 +49,4 @@ pub fn build_merge_request_body(answers: &QuestionnaireMain::Questionnaire, prof
         "description": answers.description.to_string(),
         "reviewers": reviewers
     };
-}
-
-pub fn formatter_issues(issues: &[ListOption<&String>]) -> String {
-    let issues_number: String = issues.iter().map( | s | {
-        return s.value.split(":").map(|s: &str| s.to_owned())
-            .collect::<Vec<String>>()
-            .swap_remove(0);
-    }).collect::<Vec<String>>().join(" ");
-
-    format!("{issues_number}")
 }
