@@ -1,3 +1,4 @@
+use loading::{ Loading, Spinner };
 
 use inquire::{
     Text, 
@@ -42,8 +43,14 @@ impl Questionnaire {
         let description: String = show_description();
 
         // issues
+
+        let loading = Loading::new(Spinner::new(vec!["...", "●..", ".●.", "..●"]));
+        
+        loading.text("Obtendo issues");
+
         let issues_in_progress: Issues::IssuesResponse = Issues::get_in_progress_issues(api_token).await;
 
+        loading.end();
 
         let mut issues: String = String::new();
 
@@ -151,6 +158,13 @@ fn show_description() -> String {
     };
 }
 
+fn extract_issue_number(issue_title: &String) -> String {
+    issue_title.split(":")
+    .map(|s: &str| s.to_owned())
+    .collect::<Vec<String>>()
+    .swap_remove(0)
+}
+
 async fn show_issues(issues_in_progress: Vec<IssuesResponseData>) -> String {
     
     let options: Vec<String> = issues_in_progress.iter().map( | s | {
@@ -159,19 +173,28 @@ async fn show_issues(issues_in_progress: Vec<IssuesResponseData>) -> String {
 
     let message: &str = "Qual(is) issues para esta MR?";
 
-    let result = inquire::MultiSelect::new(&message, options)
-        .with_formatter(&|issues: &[ListOption<&String>]| Utils::formatter_issues(issues))
+    let result: Result<Vec<String>, InquireError> = inquire::MultiSelect::new(&message, options)
+        .with_formatter(&|issues: &[ListOption<&String>]| {
+            let issues_number: String = issues
+                .iter()
+                .map( | s | extract_issue_number(s.value))
+                .collect::<Vec<String>>()
+                .join(" ");
+        
+            format!("{issues_number}")
+        })
         .prompt();
 
+
     match result {
-        Ok(res) => {
-            let issues_numer: String = res.iter().map( | s | {
-                return s.split(":").map(|s: &str| s.to_owned())
-                    .collect::<Vec<String>>()
-                    .swap_remove(0);
-            }).collect::<Vec<String>>().join("; ");
+        Ok(issues_selected) => {
+            let issues_number: String = issues_selected
+                .iter()
+                .map( | issue_selected | extract_issue_number(issue_selected))
+                .collect::<Vec<String>>()
+                .join(" ");
         
-            return issues_numer;
+            return issues_number;
         },
         Err(_) => panic!("Algo deu errado!")
     };
@@ -195,6 +218,7 @@ fn show_current_branch() -> String {
     let git_current_branch: String = GitFunctions::get_current_branch();
 
     let current_branch: Result<String, InquireError> = Text::new("Qual a atual branch?")
+        .with_autocomplete(BranchCompleter::BranchCompleter::default())
         .with_default(&git_current_branch)
         .prompt();
 

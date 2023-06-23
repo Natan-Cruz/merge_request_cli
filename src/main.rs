@@ -13,13 +13,14 @@ use crate::requests::{
     Issues,
 };
 
-use json::JsonValue;
-
 mod questionnaire;
 use crate::questionnaire::{
     QuestionnaireInitial, 
     QuestionnaireMain
 };
+
+use json::JsonValue;
+use loading::{Loading, Spinner};
 
 #[tokio::main]
 async fn main() {
@@ -44,7 +45,12 @@ async fn main() {
         configurations.repository
     );
 
+    let loading_merge_request = Loading::new(Spinner::new(vec!["...", "●..", ".●.", "..●"]));
+    loading_merge_request.text("Criando Merge Request");
+
     MergeRequest::create_merge_request(&authorization.api_token, merge_request_body, &configurations.project_id).await;
+
+    loading_merge_request.end();
 
     let issues_cloned = answers.issues.clone();
     let issues_cloned = issues_cloned
@@ -52,10 +58,16 @@ async fn main() {
         .filter(| issue | !issue.is_empty())
         .collect::<Vec<&str>>();
 
+
+    let loading_update_status_issues = Loading::new(Spinner::new(vec!["...", "●..", ".●.", "..●"]));
+    loading_update_status_issues.text("Alterando status das issues");
+
     if !issues_cloned.is_empty(){
         for f in issues_cloned {
             Issues::update_status(&authorization.api_token, f).await;
         }
     }
+
+    loading_update_status_issues.end()
 }
 
