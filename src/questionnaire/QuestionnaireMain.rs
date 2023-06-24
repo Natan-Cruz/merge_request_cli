@@ -34,7 +34,7 @@ pub struct Questionnaire {
 
 impl Questionnaire {
 
-    pub async fn start_questionnaire(api_token: &String, scopes: Vec<String>, prefix: Vec<String>, default_target_branch: String) -> Self {
+    pub async fn start_questionnaire(api_token: &String, project_id: &String, scopes: Vec<String>, prefix: Vec<String>, default_target_branch: String) -> Self {
 
         let type_commit: String = show_type_commit();
         let scope_commit: String = show_scope_commit(scopes);
@@ -43,12 +43,18 @@ impl Questionnaire {
         let description: String = show_description();
 
         // issues
-
         let loading = Loading::new(Spinner::new(vec!["...", "●..", ".●.", "..●"]));
-        
+
         loading.text("Obtendo issues");
 
-        let issues_in_progress: Issues::IssuesResponse = Issues::get_in_progress_issues(api_token).await;
+        let result: Result<Issues::IssuesResponse, String> = Issues::get_in_progress_issues(api_token, project_id).await;
+        
+        let mut issues_in_progress = Issues::IssuesResponse{ data: Vec::new() };
+
+        match result {
+            Ok(result) => issues_in_progress = result,
+            Err(error_message) => panic!("{error_message:?}")
+        }
 
         loading.end();
 

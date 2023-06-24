@@ -6,10 +6,29 @@ const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-app.post("/", (req, res) => {
+let temps = 0
+
+app.get("/", (req, res) => {
     console.log(req.body)
 
-    res.send({ number: 5588})
+    temps++
+
+    if(temps === 2){
+        setTimeout(() => {
+            return res.send({ data: [
+                {
+                    projectRef: { key: "10" },
+                    number: "",
+                    title: ""
+                }
+            ]})
+        }, 1000);
+    }
+
+    setTimeout(() => {
+        res.status(400).send()
+    }, 1000);
+
 })
 
 

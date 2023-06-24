@@ -29,15 +29,20 @@ pub struct ProjectRefKey {
     pub key: String
 }
 
-pub async fn get_in_progress_issues(api_token: &String) -> IssuesResponse {
-    let client: reqwest::Client = reqwest::Client::new();
+pub async fn get_in_progress_issues(api_token: &String, project_id: &String) -> Result<IssuesResponse, String> {
 
-    let url = "https://multiplier.jetbrains.space/api/http/projects/id:2ZsKnR42KI6t/planning/issues?assigneeId=me&statuses=43Wrzo4NkB7E&sorting=UPDATED&descending=true&$fields=data(number,projectRef(key),title)";
+    let mut url = String::new();
+
+    url.push_str("https://multiplier.jetbrains.space/api/http/projects/id:");
+    url.push_str(&project_id);
+    url.push_str("/planning/issues?assigneeId=me&statuses=43Wrzo4NkB7E&sorting=UPDATED&descending=true&$fields=data(number,projectRef(key),title)");
+
+    let client: reqwest::Client = reqwest::Client::new();
 
     let response: reqwest::Response = client.get(url)
         .header(CONTENT_TYPE, "application/json")
         .header(ACCEPT, "application/json")
-        .header("Authorization", "Bearer ".to_owned() + api_token)
+        .header("Authorization", "Bearer ".to_string() + api_token)
         .send()
         .await
         .unwrap();
@@ -45,33 +50,37 @@ pub async fn get_in_progress_issues(api_token: &String) -> IssuesResponse {
     match response.status() {
         reqwest::StatusCode::OK => {
             match response.json::<IssuesResponse>().await {
-                Ok(parsed) => parsed,
-                Err(err) => panic!("Ocorreu um erro ao listar issues {:?}", err),
-
+                Ok(parsed) => return Ok(parsed),
+                Err(err) => return Err(format!("Ocorreu um erro ao listar issues {err:?}")),
             }
         },
         reqwest::StatusCode::UNAUTHORIZED => {
-            panic!("Token expirado");
+            return Err("Token expirado".to_string());
         }
         other => {
-            panic!("Algo de errado aconteceu: {:?}", other);
+            return Err(format!("Algo de errado aconteceu: {:?}", other));
         }
     }
 }
 
-pub async fn update_status(api_token: &str, issues: &str) {
-    let url = "https://multiplier.jetbrains.space/api/http/projects/id:2ZsKnR42KI6t/planning/issues/key:".to_owned() + issues;
+pub async fn update_status(api_token: &str, project_id: &str, issue: &str) -> Result<String, String> {
+
+    let mut url = String::new();
+
+    url.push_str("https://multiplier.jetbrains.space/api/http/projects/id:");
+    url.push_str(project_id);
+    url.push_str("planning/issues/key:");
+    url.push_str(issue);
 
     let client: Client = Client::new();
 
-    let body = object!{
-        "status": "fNG0L1lSYbc"
-    };
+    // id do status abaixo representa "em revisão de código"
+    let body = object!{ "status": "fNG0L1lSYbc" };
 
     let response = client.patch(url)
         .header(CONTENT_TYPE, "application/json")
         .header(ACCEPT, "application/json")
-        .header("Authorization", "Bearer ".to_owned() +  api_token)
+        .header("Authorization", "Bearer ".to_string() +  api_token)
         .body(json::stringify(body))
         .send()
         .await
@@ -79,10 +88,10 @@ pub async fn update_status(api_token: &str, issues: &str) {
 
     match response.status() {
         reqwest::StatusCode::OK =>  { 
-            println!("Status da issue {issues} alterado")
+            return Ok(issue.to_string())
         },
         other => {
-            panic!("Algo de errado aconteceu: {:?}", other);
+            return Err(format!("Algo de errado aconteceu: Http Status Code: {other:?}"));
         }
     }
 }

@@ -4,10 +4,11 @@ version = 3
 
 [[package]]
 name = "CLI"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "inquire",
  "json",
+ "loading",
  "regex",
  "relative-path",
  "reqwest",
@@ -434,6 +435,12 @@ name = "linux-raw-sys"
 version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef53942eb7bf7ff43a617b3e2c1c4a5ecf5944a7c1bc12d7ee39bbb15e5c1519"
+
+[[package]]
+name = "loading"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "676420b03272176423578148eee61319e893422694f6d96a394841cb0901357f"
 
 [[package]]
 name = "lock_api"

@@ -8,7 +8,7 @@ struct Response {
     number: u16
 }
 
-pub async fn create_merge_request(api_token: &str, params: JsonValue, project_id: &String) -> () {
+pub async fn create_merge_request(api_token: &str, params: JsonValue, project_id: &String) -> Result<String, String> {
     let mut url = String::new();
 
     url.push_str("https://multiplier.jetbrains.space/api/http/projects/id:");
@@ -26,19 +26,19 @@ pub async fn create_merge_request(api_token: &str, params: JsonValue, project_id
         .await
         .unwrap();
 
-     match response.status() {
+    match response.status() {
         reqwest::StatusCode::OK => {
             // on success, parse our JSON to an APIResponse
-            match response.json::<Response>().await {
-                Ok(parsed) => println!("Link para MR: https://multiplier.jetbrains.space/p/srp/reviews/{}/timeline", parsed.number),
-                Err(_) => println!("Erro ao tentar criar MR"),
+            return match response.json::<Response>().await {
+                Ok(parsed) => Ok(parsed.number.to_string()),
+                Err(_) => Err("Erro ao tentar criar MR".to_string()),
             };
         }
         reqwest::StatusCode::UNAUTHORIZED => {
-            panic!("Token expirado");
+            return Err("Token expirado".to_string());
         }
         other => {
-            panic!("Algo de errado aconteceu: {:?}", other);
+            return Err(format!("Algo de errado aconteceu: Http Status Code: {other:?}"));
         }
      };
 }
