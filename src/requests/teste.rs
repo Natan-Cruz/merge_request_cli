@@ -35,3 +35,27 @@ pub async fn get_in_progress_issues(api_token: &String, project_id: &String, ret
 
     return issues_in_progress
 }
+
+
+
+async fn retry_async<F, Fut, Args, E, R>(mut f: F, args: Args) -> Result<R, E>
+where
+    F: FnMut(Args) -> Fut,
+    Fut: Future<Output = Result<R, E>>,
+    Args: Clone,
+{
+    let mut retries = 0;
+    loop {
+        match f(args.clone()).await {
+            Ok(result) => return Ok(result),
+            Err(err) => {
+                retries += 1;
+                if retries > 3 {
+                    return Err(err)
+                }
+                let three_seconds = time::Duration::from_secs(3);
+                thread::sleep(three_seconds);
+            }
+        }
+    }
+}

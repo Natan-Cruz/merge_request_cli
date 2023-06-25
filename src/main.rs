@@ -23,88 +23,120 @@ use crate::questionnaire::{
 
 use json::{JsonValue, object};
 use loading::{Loading, Spinner};
+use requests::Issues::get_in_progress_issues;
+
 
 
 #[tokio::main]
 async fn main() -> ExitCode {
-    let mut authorization: Authorization = Authorization::new();
+    println!("{:*<40}", "");
+    println!("Bem-vindo ao criador de Merge Request");
+    println!("{:*<40}", "");
+    
+    let authorization: Authorization = Authorization::new();
     let configurations: Configurations = Configurations::new();
 
-    // if authorization.api_token.is_empty() {
-    //     let initial_config = QuestionnaireInitial::Questionnaire::start_questionnaire().await;
-    //     authorization = Authorization::save_values(&initial_config.api_token, &initial_config.profile_id)
-    // }
+    // verifica se no Config há as mínimas propriedades para o CLI rodar
+    if authorization.profile_id.is_empty() {
+        println!("\x1b[31m{}\x1b[0m", "Propriedade \"profile_id\" está vazia, vá até o Config.toml e preecha esta propriedade");
+        return ExitCode::FAILURE;
+    }
 
-    // if configurations.scopes.is_empty() {
-    //     panic!("Escopo do projeto não estar vazio, vá até o Config.toml e preecha o campo scopes")
-    // }
+    if authorization.api_token.is_empty() {
+        println!("\x1b[31m{}\x1b[0m","Propriedade \"api_token\" está vazia, vá até o Config.toml e preecha esta propriedade");
+        return ExitCode::FAILURE;
+    }
 
-    // let answers = QuestionnaireMain::Questionnaire::start_questionnaire(
-    //     &authorization.api_token, 
-    //     &configurations.project_id, 
-    //     configurations.scopes, 
-    //     configurations.prefix, 
-    //     configurations.default_target_branch,
-    // ).await;
+    if configurations.scopes.is_empty() {
+        println!("\x1b[31m{}\x1b[0m", "Propriedade \"scopes\" está vazia, vá até o Config.toml e preecha esta propriedade");
+        return ExitCode::FAILURE;
+    }
 
-    // let merge_request_body:JsonValue = Utils::build_merge_request_body(
-    //     &answers, 
-    //     authorization.profile_id, 
-    //     configurations.reviewers,
-    //     configurations.repository
-    // );
+    // Obtém as issues em progresso
+    println!("Vamos obter as suas issues em progresso:");
 
-    let merge_request_body = object!{
-        "repository": "teste" ,
-        "sourceBranch": "teste" ,
-        "targetBranch": "teste" ,
-        "title": "teste" ,
-        "description": "teste" ,
-        "reviewers": "teste" 
+    let issues_in_progress: Result<Vec<Issues::IssuesResponseData>, String> = get_in_progress_issues(
+        &authorization.api_token, 
+        &configurations.project_id
+    ).await;
+
+    let mut continue_without_issues: bool = false;
+
+    let issues_in_progress: Vec<Issues::IssuesResponseData> = match issues_in_progress {
+        Ok(issues) => issues,
+        Err(_) => {
+            continue_without_issues = QuestionnaireMain::show_confirm("Não conseguimos obter suas issues, deseja continuar?");
+            Vec::new()
+        }
     };
 
+    if continue_without_issues == false {
+        return ExitCode::FAILURE
+    }
 
-    let merge_request_number: Result<i16, String> = MergeRequest::create_merge_request(&authorization.api_token, merge_request_body, &configurations.project_id).await;
+    println!("{:*<40}", "");
+
+    // Inicia o questionário
+    let answers = QuestionnaireMain::Questionnaire::start_questionnaire(
+        issues_in_progress,
+        configurations.scopes, 
+        configurations.prefix, 
+        configurations.default_target_branch,
+    ).await;
+
+    // Configura o objeto que iremos mandar para o space requsitando a abertura do Merge Request
+    let merge_request_body:JsonValue = Utils::build_merge_request_body(
+        &answers, 
+        authorization.profile_id, 
+        configurations.reviewers,
+        configurations.repository
+    );
+
+    // Criação do Merge Request
+    let merge_request_number: Result<i16, String> = MergeRequest::create_merge_request(
+        &authorization.api_token, 
+        &configurations.project_id,
+        merge_request_body
+    ).await;
 
     match merge_request_number {
         Ok(number) => {
             println!("Link para MR: https://multiplier.jetbrains.space/p/srp/reviews/{}/timeline", number);
         },
-        Err(error_message) => {
-            println!("{:?}", error_message);
+        Err(_) => {
             return ExitCode::FAILURE
         } 
     }
     
-    // let concatenated_number_issues: String = answers.issues.clone();
-    // let number_issues: Vec<&str> = concatenated_number_issues
-    //     .split(" ")
-    //     .filter(| issue | !issue.is_empty())
-    //     .collect::<Vec<&str>>();
+    let concatenated_number_issues: String = answers.issues.clone();
+    let number_issues: Vec<&str> = concatenated_number_issues
+        .split(" ")
+        .filter(| issue | !issue.is_empty())
+        .collect::<Vec<&str>>();
 
     
-    // if !number_issues.is_empty(){
-    //     for number_issue in number_issues {
+    if !number_issues.is_empty(){
+        for number_issue in number_issues {
 
-    //         let loading_update_status_issue = Loading::new(Spinner::new(vec!["...", "●..", ".●.", "..●"]));
+            let loading_update_status_issue = Loading::new(Spinner::new(vec!["...", "●..", ".●.", "..●"]));
         
-    //         loading_update_status_issue.text(format!("Alterando status da issue: {number_issue:?}"));
+            loading_update_status_issue.text(format!("Alterando status da issue: {number_issue:?}"));
 
-    //         let result: Result<String, String> = Issues::update_status(&authorization.api_token, &configurations.project_id, &number_issue).await;
+            let result: Result<String, String> = Issues::update_status(&authorization.api_token, &configurations.project_id, &number_issue).await;
 
-    //         match result {
-    //             Ok(_) => {
-    //                 loading_update_status_issue.text(format!("Status da Issue: {number_issue:?} alterado com sucesso"));
-    //                 loading_update_status_issue.end()
-    //             },
-    //             Err(error_message) => {
-    //                 loading_update_status_issue.fail(error_message);
-    //                 loading_update_status_issue.end();
-    //                 return ExitCode::FAILURE;
-    //             },
-    //         }
-    //     }
-    // }
+            match result {
+                Ok(_) => {
+                    loading_update_status_issue.text(format!("Status da Issue: {number_issue:?} alterado com sucesso"));
+                    loading_update_status_issue.end()
+                },
+                Err(error_message) => {
+                    loading_update_status_issue.fail(error_message);
+                    loading_update_status_issue.end();
+                    return ExitCode::FAILURE;
+                },
+            }
+        }
+    }
 
     ExitCode::SUCCESS
 }

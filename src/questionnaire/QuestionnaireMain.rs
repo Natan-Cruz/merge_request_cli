@@ -34,7 +34,7 @@ pub struct Questionnaire {
 
 impl Questionnaire {
 
-    pub async fn start_questionnaire(api_token: &String, project_id: &String, scopes: Vec<String>, prefix: Vec<String>, default_target_branch: String) -> Self {
+    pub async fn start_questionnaire(issues_in_progress: Vec<IssuesResponseData>, scopes: Vec<String>, prefix: Vec<String>, default_target_branch: String) -> Self {
 
         let type_commit: String = show_type_commit();
         let scope_commit: String = show_scope_commit(scopes);
@@ -42,28 +42,12 @@ impl Questionnaire {
         let name: String = show_name();
         let description: String = show_description();
 
-        // issues
-        let loading = Loading::new(Spinner::new(vec!["...", "●..", ".●.", "..●"]));
-
-        loading.text("Obtendo issues");
-
-        let result: Result<Issues::IssuesResponse, String> = Issues::get_in_progress_issues(api_token, project_id).await;
-        
-        let mut issues_in_progress = Issues::IssuesResponse{ data: Vec::new() };
-
-        match result {
-            Ok(result) => issues_in_progress = result,
-            Err(error_message) => panic!("{error_message:?}")
-        }
-
-        loading.end();
-
         let mut issues: String = String::new();
 
-        if issues_in_progress.data.is_empty() {
-            println!("ISSUES: Não há issues em progressos atrelados à você");
+        if issues_in_progress.is_empty() {
+            println!("\x1b[93m{}\x1b[0m", "ISSUES: Não há issues em progressos atrelados à você");
         } else{
-            let issues_selected = show_issues(issues_in_progress.data).await;
+            let issues_selected = show_issues(issues_in_progress).await;
             issues.push_str(&issues_selected)
         }
 
@@ -72,14 +56,14 @@ impl Questionnaire {
         let current_branch: String = show_current_branch();
         let target_branch: String = show_target_branch(default_target_branch);
 
-        show_confirm();
+        show_confirm("Deseja continuar?");
 
         Questionnaire { 
             type_commit,
             scope_commit,
             name,
             description,
-            issues,
+            issues: String::new(),
             prefix,
             current_branch,
             target_branch,
@@ -129,7 +113,7 @@ fn show_type_commit() -> String {
     };
 }
 
-pub fn show_scope_commit(scopes: Vec<String>) -> String{
+fn show_scope_commit(scopes: Vec<String>) -> String{
 
     let message = "Indique o ESCOPO desta mudança?";
     let scope: Result<String, InquireError> = Select::new(message, scopes)
@@ -246,8 +230,8 @@ fn show_target_branch(default_target_branch: String) -> String {
     };
 }
 
-fn show_confirm() -> bool {
-    let ans: Result<bool, InquireError> = Confirm::new("Deseja continuar?")
+pub fn show_confirm(message: &str) -> bool {
+    let ans: Result<bool, InquireError> = Confirm::new(message)
         .with_default(true)
         .prompt();
 
