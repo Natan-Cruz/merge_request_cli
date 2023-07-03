@@ -17,13 +17,10 @@ use crate::requests::{
 
 mod questionnaire;
 use crate::questionnaire::{
-    QuestionnaireInitial, 
     QuestionnaireMain
 };
 
-use json::{JsonValue, object};
-use loading::{Loading, Spinner};
-use requests::Issues::get_in_progress_issues;
+use json::JsonValue;
 
 
 
@@ -55,12 +52,12 @@ async fn main() -> ExitCode {
     // Obtém as issues em progresso
     println!("Vamos obter as suas issues em progresso:");
 
-    let issues_in_progress: Result<Vec<Issues::IssuesResponseData>, String> = get_in_progress_issues(
+    let issues_in_progress: Result<Vec<Issues::IssuesResponseData>, String> = Issues::get_in_progress_issues(
         &authorization.api_token, 
         &configurations.project_id
     ).await;
 
-    let mut continue_without_issues: bool = false;
+    let mut continue_without_issues: bool = true;
 
     let issues_in_progress: Vec<Issues::IssuesResponseData> = match issues_in_progress {
         Ok(issues) => issues,
@@ -107,36 +104,9 @@ async fn main() -> ExitCode {
             return ExitCode::FAILURE
         } 
     }
-    
-    let concatenated_number_issues: String = answers.issues.clone();
-    let number_issues: Vec<&str> = concatenated_number_issues
-        .split(" ")
-        .filter(| issue | !issue.is_empty())
-        .collect::<Vec<&str>>();
 
-    
-    if !number_issues.is_empty(){
-        for number_issue in number_issues {
+    Issues::update_status(authorization.api_token, configurations.project_id, answers.issues).await;
 
-            let loading_update_status_issue = Loading::new(Spinner::new(vec!["...", "●..", ".●.", "..●"]));
-        
-            loading_update_status_issue.text(format!("Alterando status da issue: {number_issue:?}"));
-
-            let result: Result<String, String> = Issues::update_status(&authorization.api_token, &configurations.project_id, &number_issue).await;
-
-            match result {
-                Ok(_) => {
-                    loading_update_status_issue.text(format!("Status da Issue: {number_issue:?} alterado com sucesso"));
-                    loading_update_status_issue.end()
-                },
-                Err(error_message) => {
-                    loading_update_status_issue.fail(error_message);
-                    loading_update_status_issue.end();
-                    return ExitCode::FAILURE;
-                },
-            }
-        }
-    }
 
     ExitCode::SUCCESS
 }

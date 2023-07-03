@@ -26,7 +26,7 @@ pub struct Questionnaire {
     pub scope_commit: String,
     pub name: String,
     pub description: String,
-    pub issues: String,
+    pub issues: Vec<String>,
     pub prefix: String,
     pub current_branch: String,
     pub target_branch: String,
@@ -42,14 +42,11 @@ impl Questionnaire {
         let name: String = show_name();
         let description: String = show_description();
 
-        let mut issues: String = String::new();
+        let mut issues: Vec<String> = Vec::new();
 
-        if issues_in_progress.is_empty() {
-            println!("\x1b[93m{}\x1b[0m", "ISSUES: Não há issues em progressos atrelados à você");
-        } else{
-            let issues_selected = show_issues(issues_in_progress).await;
-            issues.push_str(&issues_selected)
-        }
+        if !issues_in_progress.is_empty() {
+            issues = show_issues(issues_in_progress).await;
+        } 
 
         let prefix = show_prefix(prefix);
 
@@ -63,7 +60,7 @@ impl Questionnaire {
             scope_commit,
             name,
             description,
-            issues: String::new(),
+            issues,
             prefix,
             current_branch,
             target_branch,
@@ -155,7 +152,7 @@ fn extract_issue_number(issue_title: &String) -> String {
     .swap_remove(0)
 }
 
-async fn show_issues(issues_in_progress: Vec<IssuesResponseData>) -> String {
+async fn show_issues(issues_in_progress: Vec<IssuesResponseData>) -> Vec<String> {
     
     let options: Vec<String> = issues_in_progress.iter().map( | s | {
         format!("{}-T-{}: {}", s.projectRef.key.key, s.number, s.title)
@@ -178,13 +175,11 @@ async fn show_issues(issues_in_progress: Vec<IssuesResponseData>) -> String {
 
     match result {
         Ok(issues_selected) => {
-            let issues_number: String = issues_selected
+            return issues_selected
                 .iter()
                 .map( | issue_selected | extract_issue_number(issue_selected))
                 .collect::<Vec<String>>()
-                .join(" ");
         
-            return issues_number;
         },
         Err(_) => panic!("Algo deu errado!")
     };

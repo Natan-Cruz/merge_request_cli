@@ -70,7 +70,14 @@ impl Authorization {
         };
 
         let api_token: String = match config_toml.authorization.api_token {
-            Some(api_token) => api_token,
+            Some(api_token) => {
+                let mut token = String::new();
+
+                token.push_str("Bearer ");
+                token.push_str(&api_token);
+
+                token
+            },
             None =>  String::new()
         };
 

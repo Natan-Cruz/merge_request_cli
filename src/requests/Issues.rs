@@ -1,4 +1,5 @@
 use std::{thread, time};
+use futures::{stream, StreamExt}; // 0.3.27
 
 use json::object;
 use loading::{Loading, Spinner};
@@ -43,7 +44,7 @@ struct IssuesRequestErrors {
     message: String
 }
 
-pub async fn _get_in_progress_issues(api_token: &String, project_id: &String) -> Result<IssuesResponse, IssuesRequestErrors> {
+async fn _get_in_progress_issues(api_token: &String, project_id: &String) -> Result<IssuesResponse, IssuesRequestErrors> {
 
     let mut url = String::new();
 
@@ -57,7 +58,7 @@ pub async fn _get_in_progress_issues(api_token: &String, project_id: &String) ->
     let response: Result<reqwest::Response, reqwest::Error> = client.get(url)
         .header(CONTENT_TYPE, "application/json")
         .header(ACCEPT, "application/json")
-        .header("Authorization", "Bearer ".to_string() + api_token)
+        .header("Authorization", api_token)
         .send()
         .await;
 
@@ -127,8 +128,20 @@ pub async fn get_in_progress_issues(api_token: &String, project_id: &String) -> 
 
         match result {
             Ok(res) => {
-                loading.success("Issues obtidas com sucesso");
-                issues = res
+                match &res.data {
+                    Some(issues) => {
+                        if issues.is_empty() {
+                            let empty_message: String = format!("\x1b[93m{}\x1b[0m", "Não há issues em progressos atrelados à você");
+                            loading.warn(empty_message)
+                        } else {
+                            loading.success("Issues obtidas com sucesso");
+                        }
+
+                    },
+                    None => {}                    
+                }
+
+                issues = res               
             },
             Err(error) => {
 
@@ -163,35 +176,80 @@ pub async fn get_in_progress_issues(api_token: &String, project_id: &String) -> 
     }
 }
 
-pub async fn update_status(api_token: &str, project_id: &str, issue: &str) -> Result<String, String> {
+const CONCURRENT_REQUESTS: usize = 2;
 
-    let mut url = String::new();
+pub async fn update_status(api_token: String, project_id: String, issues: Vec<String>) {
 
-    url.push_str("https://multiplier.jetbrains.space/api/http/projects/id:");
-    url.push_str(project_id);
-    url.push_str("planning/issues/key:");
-    url.push_str(issue);
+    let urls: Vec<String> = issues
+        .iter()
+        .map( | issue | {
+            let mut url = String::new();
+
+            url.push_str("https://multiplier.jetbrains.space/api/http/projects/id:");
+            url.push_str(&project_id);
+            url.push_str("/planning/issues/key:");
+            url.push_str(issue);
+
+            return url 
+        })
+        .collect();
 
     let client: Client = Client::new();
 
     // id do status abaixo representa "em revisão de código"
     let body = object!{ "status": "fNG0L1lSYbc" };
 
-    let response = client.patch(url)
-        .header(CONTENT_TYPE, "application/json")
-        .header(ACCEPT, "application/json")
-        .header("Authorization", "Bearer ".to_string() +  api_token)
-        .body(json::stringify(body))
-        .send()
-        .await
-        .unwrap();
+    stream::iter(&urls)
+        .map(|url| {
+            let client = &client;
+            let body = &body;
+            let api_token = &api_token;
 
-    match response.status() {
-        reqwest::StatusCode::OK =>  { 
-            return Ok(issue.to_string())
-        },
-        other => {
-            return Err(format!("Algo de errado aconteceu: Http Status Code: {other:?}"));
-        }
-    }
+            let loading = Loading::new(Spinner::new(vec!["...", "●..", ".●.", "..●"]));
+            loading.text("Atualizado status das issues");
+         
+            async move {
+                let response: Result<reqwest::Response, reqwest::Error> = client.patch(&**url)
+                    .header(CONTENT_TYPE, "application/json")
+                    .header(ACCEPT, "application/json")
+                    .header("Authorization", api_token)
+                    .body(json::stringify(body.clone()))
+                    .send()
+                    .await;
+
+                match response {
+                    Ok(response) => match response.status() {
+                        reqwest::StatusCode::OK => {
+                            let url_splitted = url.split(":").collect::<Vec<&str>>();
+                            let issue = url_splitted[url_splitted.len() - 1];
+                            loading.success(format!("{} foi atualizada com sucesso", issue))
+                        },
+                        reqwest::StatusCode::UNAUTHORIZED => {
+                            loading.fail("Erro ao atualizar status da issue:: Token expirado")
+                        },
+                        other => {
+                            println!("{other:?}");
+                            loading.fail("Ocorreu um error ao atualizar status da issue")
+                        }
+                        
+                    },
+                    Err(error) => {
+                        if error.is_connect() {
+                            return loading.fail("Erro ao atualizar status da issue: Problema com sua conexão")
+                        }
+
+                        if error.is_timeout() {
+                            return loading.fail("Erro ao atualizar status da issue: Timeout")
+                        }
+
+                        println!("{error:?}");
+
+                        loading.fail("Ocorreu um error ao atualizar status da issue")
+                    }
+                }
+            }
+        })
+        .buffer_unordered(CONCURRENT_REQUESTS)
+        .collect::<Vec<_>>()
+        .await;
 }

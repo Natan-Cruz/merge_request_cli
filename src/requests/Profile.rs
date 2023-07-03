@@ -31,7 +31,7 @@ pub async fn get_profile(api_token: &str) -> Profile {
     let response = client.get(url)
         .header(CONTENT_TYPE, "application/json")
         .header(ACCEPT, "application/json")
-        .header("Authorization", "Bearer ".to_owned() + &api_token)
+        .header("Authorization", api_token)
         .send()
         .await
         .unwrap();

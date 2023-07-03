@@ -34,7 +34,7 @@ async fn _create_merge_request(api_token: &str, params: JsonValue, project_id: &
     let response: Result<reqwest::Response, reqwest::Error> = client.post(url)
         .header(CONTENT_TYPE, "application/json")
         .header(ACCEPT, "application/json")
-        .header("Authorization", "Bearer ".to_owned() +  api_token)
+        .header("Authorization", api_token)
         .body(json::stringify(params))
         .send()
         .await;

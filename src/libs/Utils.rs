@@ -32,7 +32,7 @@ pub fn build_merge_request_body(answers: &QuestionnaireMain::Questionnaire, prof
 
     if !answers.issues.is_empty() {
         title.push_str(" - ");
-        title.push_str(&answers.issues);
+        title.push_str(&answers.issues.join(" "));
     }
 
     let reviewers: Vec<JsonValue> = reviewers
